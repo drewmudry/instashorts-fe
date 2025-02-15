@@ -1,10 +1,22 @@
+// middleware.ts
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+const publicPaths = ['/', '/auth/login', '/auth/google/callback']
+
 export function middleware(request: NextRequest) {
-  const authToken = request.cookies.get('auth_token')
+  const path = request.nextUrl.pathname
   
-  if (!authToken && request.nextUrl.pathname.startsWith('/dashboard')) {
+  // Allow public paths
+  if (publicPaths.includes(path)) {
+    return NextResponse.next()
+  }
+  
+  // Check for the user_session cookie specifically
+  const session = request.cookies.get('user_session')
+  
+  if (!session) {
+    // Redirect to login if no session
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
   
@@ -12,5 +24,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: '/dashboard/:path*'
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)']
 }
