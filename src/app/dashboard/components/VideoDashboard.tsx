@@ -11,19 +11,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-
-interface Video {
-  id: string
-  title: string
-  status: string
-  created_at: string
-  description?: string
-}
+import { VideoList, CreateVideoRequest } from '@/types/videos'
 
 export function VideosDashboard() {
-  const [videos, setVideos] = useState<Video[]>([])
+  const [videos, setVideos] = useState<VideoList[]>([])
   const [isOpen, setIsOpen] = useState(false)
-  const [theme, setTheme] = useState('')
+  const [topic, setTopic] = useState('')
   const [voice, setVoice] = useState('')
 
   useEffect(() => {
@@ -36,7 +29,7 @@ export function VideosDashboard() {
         credentials: 'include'
       })
       if (response.ok) {
-        const data = await response.json()
+        const data: VideoList[] = await response.json()
         setVideos(data)
       }
     } catch (error) {
@@ -46,6 +39,12 @@ export function VideosDashboard() {
 
   const handleCreateVideo = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    const videoData: CreateVideoRequest = {
+      topic,
+      voice,
+    }
+
     try {
       const response = await fetch('http://localhost:8000/videos/', {
         method: 'POST',
@@ -53,17 +52,14 @@ export function VideosDashboard() {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({
-          title: theme, // Using theme as title for now
-          description: `Voice style: ${voice}`,
-        }),
+        body: JSON.stringify(videoData),
       })
 
       if (response.ok) {
         setIsOpen(false)
-        setTheme('')
+        setTopic('')
         setVoice('')
-        fetchVideos() // Refresh the video list
+        fetchVideos()
       }
     } catch (error) {
       console.error('Error creating video:', error)
@@ -84,12 +80,13 @@ export function VideosDashboard() {
             </DialogHeader>
             <form onSubmit={handleCreateVideo} className="space-y-4">
               <div>
-                <label className="text-sm font-medium">Theme</label>
+                <label className="text-sm font-medium">Topic</label>
                 <Input
-                  value={theme}
-                  onChange={(e) => setTheme(e.target.value)}
-                  placeholder="Enter video theme"
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  placeholder="Enter video topic"
                   className="mt-1"
+                  required
                 />
               </div>
               <div>
@@ -99,6 +96,7 @@ export function VideosDashboard() {
                   onChange={(e) => setVoice(e.target.value)}
                   placeholder="Enter voice style"
                   className="mt-1"
+                  required
                 />
               </div>
               <Button type="submit" className="w-full">
@@ -113,15 +111,20 @@ export function VideosDashboard() {
         {videos.map((video) => (
           <Card key={video.id}>
             <CardHeader>
-              <CardTitle>{video.title}</CardTitle>
+              <CardTitle>{video.title || video.topic}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-500">Status: {video.status}</p>
+              <p className="text-sm text-gray-500">Status: {video.creation_status}</p>
               <p className="text-sm text-gray-500">
                 Created: {new Date(video.created_at).toLocaleDateString()}
               </p>
-              {video.description && (
-                <p className="text-sm text-gray-500 mt-2">{video.description}</p>
+              <p className="text-sm text-gray-500 mt-2">Voice: {video.voice}</p>
+              {video.final_url && (
+                <Button variant="outline" className="mt-2" asChild>
+                  <a href={video.final_url} target="_blank" rel="noopener noreferrer">
+                    View Video
+                  </a>
+                </Button>
               )}
             </CardContent>
           </Card>
