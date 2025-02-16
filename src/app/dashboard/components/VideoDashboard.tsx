@@ -119,6 +119,7 @@ export function VideosDashboard() {
                 Created: {new Date(video.created_at).toLocaleDateString()}
               </p>
               <p className="text-sm text-gray-500 mt-2">Voice: {video.voice}</p>
+              <p className="text-sm text-gray-500 mt-2">Topic: {video.topic}</p>
               {video.final_url && (
                 <Button variant="outline" className="mt-2" asChild>
                   <a href={video.final_url} target="_blank" rel="noopener noreferrer">
