@@ -1,21 +1,23 @@
-'use client'
-import { Button } from '@/components/ui/button'
+'use client';
+
+import { Button } from '@/components/ui/button';
 import LoadingAuth from "@/components/LoadingAuth";
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
+import { UserProvider } from '@/context/UserContext';
 
 export default function DashboardLayout({
   children
 }: {
   children: React.ReactNode
 }) {
-  const router = useRouter()
+  const router = useRouter();
 
   const handleLogout = async () => {
     await fetch('http://localhost:8000/logout', {
       credentials: 'include'
-    })
-    router.push('/')
-  }
+    });
+    router.push('/');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -39,8 +41,10 @@ export default function DashboardLayout({
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <LoadingAuth>{children}</LoadingAuth>
+        <LoadingAuth> {/* Protect the children with LoadingAuth */}
+          <UserProvider>{children}</UserProvider> {/* Provider wraps the content */}
+        </LoadingAuth>
       </main>
     </div>
-  )
+  );
 }

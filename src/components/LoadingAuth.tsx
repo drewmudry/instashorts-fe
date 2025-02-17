@@ -8,16 +8,16 @@ export default function LoadingAuth({
 }: { 
   children: React.ReactNode 
 }) {
-  const { user, loading } = useUser()
+  const { user, isLoading } = useUser()
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!isLoading && !user) {
       router.push('/auth/login')
     }
-  }, [user, loading, router])
+  }, [user, isLoading, router])
 
-  if (loading) {
+  if (isLoading) {
     return <div>Loading...</div>
   }
 

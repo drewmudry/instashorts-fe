@@ -1,14 +1,15 @@
-'use client'
+'use client';
+
 import { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types/auth';
 
 type UserContextType = {
   user: User | null;
   setUser: (user: User | null) => void;
-  loading: boolean;
+  isLoading: boolean;
 };
 
-const UserContext = createContext<UserContextType | undefined>(undefined);
+export const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function useUser() {
   const context = useContext(UserContext);
@@ -19,31 +20,35 @@ export function useUser() {
 }
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-  
-    useEffect(() => {
-      fetch('http://localhost:8000/auth/me', {
-        credentials: 'include' 
-      })
-        .then(res => {
-          if (res.ok) return res.json();
-          throw new Error('Not authenticated');
-        })
-        .then(data => {
-          setUser(data);
-        })
-        .catch(() => {
-          setUser(null);
-        })
-        .finally(() => {
-          setLoading(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // isLoading state
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/auth/me', {
+          credentials: 'include',
         });
-    }, []);
-  
-    return (
-      <UserContext.Provider value={{ user, setUser, loading }}>
-        {children}
-      </UserContext.Provider>
-    );
-  }
+        if (res.ok) {
+          const data: User = await res.json();
+          setUser(data);
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        setUser(null);
+      } finally {
+        setIsLoading(false); // Update isLoading in finally block
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  return (
+    <UserContext.Provider value={{ user, setUser, isLoading }}> {/* Use isLoading state */}
+      {children}
+    </UserContext.Provider>
+  );
+}
