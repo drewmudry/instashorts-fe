@@ -170,6 +170,10 @@ export default function VideosDashboard() {
     return <div>Please log in to view your videos.</div>;
   }
 
+  const showProgress = (status: VideoStatus) => {
+    return status !== VideoStatus.FAILED && status !== VideoStatus.COMPLETED;
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -223,10 +227,12 @@ export default function VideosDashboard() {
                   <p className={`text-sm font-medium ${getStatusColor(video.creation_status)}`}>
                     {video.creation_status}
                   </p>
-                  <Progress 
-                    value={STATUS_PROGRESS[video.creation_status] || 0} 
-                    className="mt-2"
-                  />
+                  {showProgress(video.creation_status) && (
+                    <Progress
+                      value={STATUS_PROGRESS[video.creation_status] || 0}
+                      className="mt-2"
+                    />
+                  )}
                 </div>
                 <div className="space-y-2">
                   <p className="text-sm text-gray-500">
