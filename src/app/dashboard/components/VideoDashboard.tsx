@@ -240,6 +240,9 @@ export default function VideosDashboard() {
                   </p>
                   <p className="text-sm text-gray-500">Voice: {video.voice}</p>
                   <p className="text-sm text-gray-500">Topic: {video.topic}</p>
+                  {video.audio_url && (
+                  <p className="text-sm text-gray-500">audio: {video.audio_url}</p>
+                )}
                 </div>
                 {video.final_url && (
                   <Button variant="outline" className="w-full" asChild>
