@@ -177,7 +177,7 @@ export default function VideosDashboard() {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">My Videos</h2>
+        <h2 className="text-2xl font-semibold">AI Videos</h2>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button>Create New Video</Button>
