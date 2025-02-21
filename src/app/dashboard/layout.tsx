@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import LoadingAuth from "@/components/LoadingAuth";
 import { useRouter } from 'next/navigation';
 import { UserProvider } from '@/context/UserContext';
+import { redirect } from 'next/navigation'
+
 
 export default function DashboardLayout({
   children
@@ -16,7 +18,7 @@ export default function DashboardLayout({
     await fetch('http://localhost:8000/logout', {
       credentials: 'include'
     });
-    router.push('/');
+    redirect(`/auth/login/`)
   };
 
   return (

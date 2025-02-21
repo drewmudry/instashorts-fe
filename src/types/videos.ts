@@ -37,7 +37,7 @@ interface VideoBase {
   voice: string;
   title: string;
   creation_status: VideoStatus;
-  created_at: string;
+  created_at: Date;
 }
 
 export interface VideoCreate extends VideoBase {
