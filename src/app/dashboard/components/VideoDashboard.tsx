@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,9 +11,38 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { VideoList, VideoRequest, VideoStatus } from '@/types/videos';
 import { UserContext } from '@/context/UserContext';
+import { Play, Pause } from 'lucide-react';
+
+// Voice mapping dictionary
+const VOICE_CODE_DICT = {
+  "Adam": "pNInz6obpgDQGcFmaJgB",
+  "Brian": "nPczCjzI2devNBz1zQrb",
+  "Nicole": "piTKgcLEGmPE4e6mEKli",
+  "Clyde": "2EiwWnXFnvU5JabPnv8n",
+  "Dorothy": "ThT5KcBeYPX3keUQqHPh",
+  "Drew": "29vD33N1CtxCmqQRPOHJ",
+  "Freya": "jsCqWAovK2LkecY7zXl4",
+  "James": "ZQe5CZNOzWyzPSCn5a3c",
+  "Jessica": "cgSgspJ2msm6clMCkdW9",
+  "Sarah": "EXAVITQu4vr4xnSDxMaL",
+  "Thomas": "GBv7mTt0atIp3Br8iCZE"
+};
+
+// Convert dictionary to array for easier rendering
+const VOICES = Object.entries(VOICE_CODE_DICT).map(([name, id]) => ({
+  name,
+  id
+}));
 
 const STATUS_PROGRESS: Record<VideoStatus, number> = {
   [VideoStatus.PENDING]: 0,
@@ -32,9 +61,9 @@ const STATUS_PROGRESS: Record<VideoStatus, number> = {
 
 const useVideoStatusUpdates = (videos: VideoList[], setVideos: React.Dispatch<React.SetStateAction<VideoList[]>>) => {
   const [connections, setConnections] = useState<{ [key: string]: EventSource }>({});
-  const context = useContext(UserContext); // Get the context
-  const user = context?.user; // Access user safely using optional chaining
-  const userLoading = context?.isLoading; // Access isLoading safely
+  const context = useContext(UserContext);
+  const user = context?.user;
+  const userLoading = context?.isLoading;
 
   useEffect(() => {
     if (user) {
@@ -90,8 +119,11 @@ export default function VideosDashboard() {
   const [videos, setVideos] = useState<VideoList[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [topic, setTopic] = useState('');
-  const [voice, setVoice] = useState('');
+  const [voiceId, setVoiceId] = useState('');
+  const [voiceName, setVoiceName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [playingVoice, setPlayingVoice] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const context = useContext(UserContext);
   const user = context?.user;
@@ -121,13 +153,43 @@ export default function VideosDashboard() {
     fetchVideos();
   }, [user]);
 
+  const playAudioSample = (name: string) => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    
+    if (playingVoice === name) {
+      setPlayingVoice(null);
+    } else {
+      const audio = new Audio(`/voices/${name.toLowerCase()}_sample.mp3`);
+      audio.onended = () => setPlayingVoice(null);
+      audio.play();
+      audioRef.current = audio;
+      setPlayingVoice(name);
+    }
+  };
+
+  const handleVoiceSelect = (value: string) => {
+    // Find the voice by ID
+    const selectedVoice = VOICES.find(voice => voice.id === value);
+    if (selectedVoice) {
+      setVoiceId(value);
+      setVoiceName(selectedVoice.name);
+    }
+  };
+  
+  // Separate handler for clicking on voice items
+  const handleVoiceItemClick = (voiceId: string) => {
+    handleVoiceSelect(voiceId);
+  };
+
   const handleCreateVideo = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     const videoData: VideoRequest = {
       topic,
-      voice,
+      voice: voiceId,
     };
 
     try {
@@ -145,7 +207,8 @@ export default function VideosDashboard() {
         setVideos((prev) => [...prev, newVideo]);
         setIsOpen(false);
         setTopic('');
-        setVoice('');
+        setVoiceId('');
+        setVoiceName('');
       } else {
         console.error('Error creating video:', response.statusText);
       }
@@ -174,6 +237,12 @@ export default function VideosDashboard() {
     return status !== VideoStatus.FAILED && status !== VideoStatus.COMPLETED;
   };
 
+  // Get voice name from ID for display in cards
+  const getVoiceNameFromId = (id: string) => {
+    const voice = VOICES.find(v => v.id === id);
+    return voice ? voice.name : id;
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -198,14 +267,43 @@ export default function VideosDashboard() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Voice Style</label>
-                <Input
-                  value={voice}
-                  onChange={(e) => setVoice(e.target.value)}
-                  placeholder="Enter voice style"
-                  className="mt-1"
-                  required
-                />
+                <label className="text-sm font-medium">Voice</label>
+                <div className="mt-1">
+                  <Select onValueChange={handleVoiceSelect} value={voiceId}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a voice" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {VOICES.map(voice => (
+                        <div key={voice.id} className="flex items-center px-2 py-1.5 justify-between">
+                          <SelectItem 
+                            value={voice.id} 
+                            className="p-0 flex-1"
+                          >
+                            {voice.name}
+                          </SelectItem>
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 shrink-0 ml-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              playAudioSample(voice.name);
+                            }}
+                          >
+                            {playingVoice === voice.name ? (
+                              <Pause className="h-4 w-4" />
+                            ) : (
+                              <Play className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? 'Creating...' : 'Create Video'}
@@ -238,11 +336,13 @@ export default function VideosDashboard() {
                   <p className="text-sm text-gray-500">
                     Created: {new Date(video.created_at).toLocaleDateString()}
                   </p>
-                  <p className="text-sm text-gray-500">Voice: {video.voice}</p>
+                  <p className="text-sm text-gray-500">
+                    Voice: {getVoiceNameFromId(video.voice)}
+                  </p>
                   <p className="text-sm text-gray-500">Topic: {video.topic}</p>
                   {video.audio_url && (
-                  <p className="text-sm text-gray-500">audio: {video.audio_url}</p>
-                )}
+                    <p className="text-sm text-gray-500">audio: {video.audio_url}</p>
+                  )}
                 </div>
                 {video.final_url && (
                   <Button variant="outline" className="w-full" asChild>
@@ -257,5 +357,5 @@ export default function VideosDashboard() {
         ))}
       </div>
     </div>
-  )
+  );
 }
