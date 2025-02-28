@@ -140,7 +140,11 @@ export default function VideosDashboard() {
           });
           if (response.ok) {
             const data: VideoList[] = await response.json();
-            setVideos(data);
+            // Sort videos by created_at date in descending order (newest first)
+            const sortedData = data.sort((a, b) => 
+              new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            );
+            setVideos(sortedData);
           } else {
             console.error('Error fetching videos:', response.statusText);
           }
@@ -149,7 +153,7 @@ export default function VideosDashboard() {
         }
       }
     };
-
+  
     fetchVideos();
   }, [user]);
 
@@ -344,9 +348,9 @@ export default function VideosDashboard() {
                     <p className="text-sm text-gray-500">audio: {video.audio_url}</p>
                   )}
                 </div>
-                {video.final_url && (
+                {video.video_url && (
                   <Button variant="outline" className="w-full" asChild>
-                    <a href={video.final_url} target="_blank" rel="noopener noreferrer">
+                    <a href={video.video_url} target="_blank" rel="noopener noreferrer">
                       View Video
                     </a>
                   </Button>
