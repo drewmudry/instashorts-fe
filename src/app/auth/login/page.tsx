@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 
 export default function Login() {
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:8000/auth/login/google'
+    // window.location.href = 'http://localhost:8000/auth/login/google'
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/login/google`
   }
 
   return (

@@ -15,7 +15,7 @@ export default function DashboardLayout({
   const router = useRouter();
 
   const handleLogout = async () => {
-    await fetch('http://localhost:8000/logout', {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {
       credentials: 'include'
     });
     redirect(`/auth/login/`)
