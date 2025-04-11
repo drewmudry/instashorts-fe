@@ -47,6 +47,7 @@ export interface VideoCreate extends VideoBase {
 export interface VideoList extends VideoBase {
   video_url?: string;
   audio_url?: string;
+  final_url?: string;
 }
 
 export interface VideoDetail extends VideoBase {

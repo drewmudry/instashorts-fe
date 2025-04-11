@@ -208,7 +208,7 @@ export default function VideosDashboard() {
 
       if (response.ok) {
         const newVideo = await response.json();
-        setVideos((prev) => [...prev, newVideo]);
+        setVideos((prev) => [newVideo, ...prev]);
         setIsOpen(false);
         setTopic('');
         setVoiceId('');
@@ -324,8 +324,15 @@ export default function VideosDashboard() {
               <CardTitle>{video.title || video.topic}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div>
+              {video.final_url ? (
+                <div className="mt-4">
+                  <video controls width="100%" preload="metadata">
+                    <source src={video.final_url} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              ) : (
+                <div className="space-y-2">
                   <p className={`text-sm font-medium ${getStatusColor(video.creation_status)}`}>
                     {video.creation_status}
                   </p>
@@ -336,26 +343,7 @@ export default function VideosDashboard() {
                     />
                   )}
                 </div>
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-500">
-                    Created: {new Date(video.created_at).toLocaleDateString()}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Voice: {getVoiceNameFromId(video.voice)}
-                  </p>
-                  <p className="text-sm text-gray-500">Topic: {video.topic}</p>
-                  {video.audio_url && (
-                    <p className="text-sm text-gray-500">audio: {video.audio_url}</p>
-                  )}
-                </div>
-                {video.video_url && (
-                  <Button variant="outline" className="w-full" asChild>
-                    <a href={video.video_url} target="_blank" rel="noopener noreferrer">
-                      View Video
-                    </a>
-                  </Button>
-                )}
-              </div>
+              )}
             </CardContent>
           </Card>
         ))}
